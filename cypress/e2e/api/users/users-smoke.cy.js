@@ -1,6 +1,7 @@
 import { authHelper } from '../../../support/auth/authHelper';
 import { runQueryTests } from '../../../support/utils/testRunner';
 import { userTestCases } from '../../../fixtures/testData/users/userTestCases';
+import { randomDateRange } from './randomDataGenerator';
 
 describe('Users API - Smoke Tests', () => {
   before(() => {

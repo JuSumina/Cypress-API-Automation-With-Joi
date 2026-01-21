@@ -1,5 +1,6 @@
 import { authHelper } from '../../../support/auth/authHelper';
 import { dateRangeTests } from '../../../fixtures/testData/users/dateRangeTests';
+import { randomDateRange } from './randomDataGenerator';
 
 describe('Users API - Date Range Query Tests', () => {
   before(() => {
