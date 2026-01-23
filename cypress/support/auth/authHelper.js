@@ -1,53 +1,45 @@
 class AuthHelper {
   constructor() {
-    this.tokenKey = 'authToken';
-    this.userKey = 'currentUser';
+    this.tokenAlias = 'authToken';
+    this.userAlias = 'currentUser';
   }
 
 
   login(username = Cypress.env('API_USERNAME'), password = Cypress.env('API_PASSWORD')) {
     cy.log('Attempting login...');
-    cy.log(`Username: ${username}`);
-    cy.log(`Password: ${password ? 'PROVIDED' : 'MISSING'}`);
+    if (!username || !password) {
+      throw new Error ('Missing username / password. Check Cypress.env settings.');
+    }
     
     return cy.request({
       method: 'POST',
       url: Cypress.env('loginEndpoint'),
-      headers: {
-        'Content-Type': 'application/json'
-     },
+      headers: {'Content-Type': 'application/json'},
       body: {
         username: username,
         password: password,
-        expiresInMins: 30 // DummyJSON specific
+        //expiresInMins: 30
       },
       failOnStatusCode: false
     }).then((response) => {
-        
-        cy.log(`Response Status: ${response.status}`);
-        cy.log('Response Body:', JSON.stringify(response.body));
+        cy.log(`Login status: ${response.status}`);
 
-        if (response.status === 200) {
-        cy.log('Login successful');
-        
-        // Token should be in response.body.token or response.body.accessToken
-        const token = response.body.token || response.body.accessToken;
-        
-        if (token) {
-            cy.log(`Token received: ${token.substring(0, 20)}...`);
-            this.setToken(token);
-            this.setUser(response.body);
-            return cy.wrap(response.body);
-        } else {
-            cy.log('No token in response body');
-            cy.log('Response keys:', Object.keys(response.body));
-            throw new Error('No token found in login response');
+        if (response.status !== 200) {
+          const msg = response.body?.message || response.body?.error || 'Login failed';
+          throw new Error(`Login failed (${response.status}): ${msg}`);
         }
-        } else {
-        cy.log('Login failed');
-        cy.log(`Error Response: ${JSON.stringify(response.body)}`);
-        throw new Error(`Login failed with status ${response.status}: ${JSON.stringify(response.body)}`);
+
+        
+        const token = response.body?.accessToken || response.body?.token;
+        if (!token) {
+          throw new Error('Login succeeded but no access token was found in response.');
         }
+
+        
+        cy.wrap(token, { log: false }).as(this.tokenAlias);
+        cy.wrap(response.body, { log: false }).as(this.userAlias);
+
+        return response.body;
     });
   }
 
@@ -59,7 +51,7 @@ class AuthHelper {
 
 
   getToken() {
-    return Cypress.env(this.tokenKey);
+    return cy.get(`@${this.tokenAlias}`, { log: false });
   }
 
 
@@ -70,39 +62,27 @@ class AuthHelper {
 
 
   getUser() {
-    return Cypress.env(this.userKey);
+    return cy.get(`@${this.userAlias}`, { log: false });
   }
 
 
   authenticatedRequest(options) {
-    const token = this.getToken();
-    
-    if (!token) {
-      throw new Error('No auth token found. Please login first.');
-    }
+    // Make it chainable + safe
+    return this.getToken().then((token) => {
+      if (!token) throw new Error('No auth token found. Did you call cy.login() in this test/spec?');
 
-    return cy.request({
-      ...options,
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      failOnStatusCode: false
+      return cy.request({
+        ...options,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        },
+        failOnStatusCode: false,
+      });
     });
   }
-
-
-  logout() {
-    Cypress.env(this.tokenKey, null);
-    Cypress.env(this.userKey, null);
-    cy.log('Logged out');
-  }
-
-
-  isAuthenticated() {
-    return !!this.getToken();
-  }
 }
+
 
 export const authHelper = new AuthHelper();

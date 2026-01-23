@@ -1,5 +1,5 @@
 import { authHelper } from '../../../support/auth/authHelper';
-import { runQueryTests } from '../../../support/utils/testRunner';
+import { runQueryTests } from '../../../support/utils/runners/testRunner';
 import { userTestCases } from '../../../fixtures/testData/users/userTestCases';
 import { randomDateRange } from './randomDataGenerator';
 

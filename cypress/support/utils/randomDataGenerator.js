@@ -1,3 +1,5 @@
+//OLD FILE - DO NOT USE
+
 //Generate random string
 
 export const randomString = (length = 10, options = {}) => {
