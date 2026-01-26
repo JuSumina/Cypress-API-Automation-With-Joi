@@ -1,5 +1,5 @@
 import { createRng, randInt, randomDobYMD } from '../utils/dateUtils';
-import { getEnvName, getValidBenefitsForEnv } from '../config/benefitsByEnv';
+import { getEnvName, getValidBenefitsForEnv } from '../config/benefits';
 
 // === Helpers === //
 const pickOne = (rng, arr) => arr[randInt(rng, 0, arr.length - 1)];
@@ -29,13 +29,21 @@ export const buildApplicationPayload = (overrides = {}, opts = {}) => {
   const envName = (opts.envName || getEnvName()).toLowerCase();
   const benefits = getValidBenefitsForEnv(envName);
 
+  if (!benefits || benefits.length === 0) {
+  throw new Error(`No benefits configured for env: ${envName}`);
+  }
+
   const payload = {
     firstName: randomFirstName(rng),
     lastName: randomLastName(rng),
 
     // Date of Birth (YYYY-MM-DD)
-    dateOfBirth: randomDobYMD(rng, { minAge: opts.minAge ?? 18, maxAge: opts.maxAge ?? 80 }),
-
+    dateOfBirth: randomDobYMD(rng, {
+      minAge: opts.minAge,
+      maxAge: opts.maxAge,
+      minDate: opts.minDate,
+      maxDate: opts.maxDate
+    }),
     // 9 digits
     ssn: randomSsn9(rng),
 
@@ -48,3 +56,6 @@ export const buildApplicationPayload = (overrides = {}, opts = {}) => {
 
   return { ...payload, ...overrides };
 };
+
+export const buildValidApplication = (overrides = {}, opts = {}) =>
+  buildApplicationPayload(overrides, { ...opts, minAge: 18, maxAge: 65 });

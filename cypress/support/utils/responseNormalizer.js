@@ -133,10 +133,9 @@ export const extractMessage = (body) => {
   return undefined;
 };
 
-/**
- * Main helper you will use most often.
- * Returns a normalized shape for ANY endpoint response.
- */
+//MAIN HELPER.
+//Returns a normalized shape for ANY endpoint response
+ 
 export const normalizeResponse = (response, options = {}) => {
   const body = response?.body;
 

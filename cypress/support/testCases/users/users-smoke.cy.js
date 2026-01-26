@@ -1,5 +1,5 @@
-import { authHelper } from '../../../support/auth/authHelper';
-import { runQueryTests } from '../../../support/utils/runners/testRunner';
+import { authHelper } from '../../auth/authHelper';
+import { runQueryTests } from '../../runners/testRunner';
 import { userTestCases } from '../../../fixtures/testData/users/userTestCases';
 import { randomDateRange } from './randomDataGenerator';
 
@@ -39,7 +39,7 @@ describe('Users API - Smoke Tests', () => {
           
 
           if (testCase.validate.schema) {
-            const { validateJoiSchema } = require('../../../support/validators/joiValidator');
+            const { validateJoiSchema } = require('../../validators/joiValidator');
             validateJoiSchema(response.body, testCase.validate.schema);
           }
           

@@ -2,14 +2,14 @@ import { authHelper } from '../auth/authHelper';
 import { validateJoiSchema } from '../validators/joiValidator';
 import { normalizeResponse } from '../utils/responseNormalizer';
 
-export const runApiTests = (testCases, suiteOptions = {}) => {
+export const apiRunner = (testCases, suiteOptions = {}) => {
   testCases.forEach((testCase) => {
     const {
       id,
       description,
       method = suiteOptions.method || 'GET',
       endpoint,              // string OR function returning string
-      endpointBuilder,       // function returning Cypress chain that yields string (for dynamic ids)
+      endpointBuilder,       // function returning Cypress chain that yields string
       queryParams,
       body,
       bodyBuilder,           // function returning object (payload)
@@ -26,12 +26,8 @@ export const runApiTests = (testCases, suiteOptions = {}) => {
       const startTime = Date.now();
 
       const resolveUrl = () => {
-        if (typeof endpointBuilder === 'function') {
-          return endpointBuilder(); // must return cy.wrap(url) or a Cypress chain yielding url
-        }
-        if (typeof endpoint === 'function') {
-          return cy.wrap(endpoint());
-        }
+        if (typeof endpointBuilder === 'function') return endpointBuilder();
+        if (typeof endpoint === 'function') return cy.wrap(endpoint());
         return cy.wrap(endpoint);
       };
 
@@ -58,26 +54,26 @@ export const runApiTests = (testCases, suiteOptions = {}) => {
             idPath: validate.idPath,
           });
 
-          // 1) Status
+          // Status
           if (expectedStatus !== undefined) {
             expect(response.status, 'Status Code').to.eq(expectedStatus);
           }
 
-          // 2) No body support
+          // No-body support (204 or explicit)
           const expectsNoBody = validate.noBody === true || response.status === 204;
           if (expectsNoBody) {
             if (validate.custom) validate.custom(response, responseTime, normalized);
             return;
           }
 
-          // 3) Schema
+          // Schema
           if (validate.schema && Cypress.env('enableSchemaValidation') !== false) {
             if (normalized.body !== undefined && normalized.body !== null && normalized.body !== '') {
               validateJoiSchema(normalized.body, validate.schema);
             }
           }
 
-          // 4) Response time
+          // Perf
           if (validate.responseTime && Cypress.env('enablePerformanceChecks') !== false) {
             if (validate.responseTime.max) {
               expect(responseTime, 'Response Time').to.be.lessThan(validate.responseTime.max);
@@ -87,7 +83,7 @@ export const runApiTests = (testCases, suiteOptions = {}) => {
             }
           }
 
-          // 5) List size
+          // List counts
           if (validate.exactResults !== undefined) {
             expect(normalized.items.length, 'Exact Results Count').to.eq(validate.exactResults);
           }
@@ -98,7 +94,7 @@ export const runApiTests = (testCases, suiteOptions = {}) => {
             expect(normalized.items.length, 'Maximum Results').to.be.at.most(validate.maxResults);
           }
 
-          // 6) Custom
+          // Custom
           if (validate.custom) validate.custom(response, responseTime, normalized);
         });
       });

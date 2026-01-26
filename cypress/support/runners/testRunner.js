@@ -1,6 +1,6 @@
-import { validateJoiSchema } from '../../validators/joiValidator';
-import { authHelper } from '../../auth/authHelper';
-import { normalizeResponse } from '../responseNormalizer';
+import { validateJoiSchema } from '../validators/joiValidator';
+import { authHelper } from '../auth/authHelper';
+import { normalizeResponse } from '../utils/responseNormalizer';
 
 export const runQueryTests = (endpoint, testCases, options = {}) => {
   testCases.forEach((testCase) => {

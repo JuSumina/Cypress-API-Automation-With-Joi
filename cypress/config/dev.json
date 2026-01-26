@@ -1,0 +1,12 @@
+{
+  "apiBaseUrl": "https://dev.api.myapp.com",
+  "loginEndpoint": "/auth/login",
+  "createApplicationEndpoint": "/applications",
+  "searchApplicationsEndpoint": "/applications/search",
+  "closeApplicationEndpoint": "/applications/{id}/close",
+
+  "benefits": ["SNAP", "MEDICAID", "HEAP"],
+
+  "enableSchemaValidation": true,
+  "enablePerformanceChecks": true
+}
